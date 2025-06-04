@@ -4,6 +4,7 @@
     "datasource",
     "dotenv",
     "mouts",
-    "postgresql"
+    "postgresql",
+    "Resetando"
   ]
 }

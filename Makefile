@@ -16,5 +16,5 @@ dev:
 
 .PHONY: e2e
 e2e:
-	npx dotenv -e config/.env -- npm run test:e2e
+	docker compose -f docker/e2e.docker-compose.yml -p test-api-mouts-v2 up --build --abort-on-container-exit test-api-mouts && docker compose -f docker/e2e.docker-compose.yml -p test-api-mouts-v2 down --volumes
 
