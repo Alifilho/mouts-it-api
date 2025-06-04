@@ -5,3 +5,7 @@ down:
 .PHONY: up
 up:
 	docker compose -f docker/local.docker-compose.yml -p api-mouts up -d
+
+.PHONY: migrate
+migrate:
+	npx dotenv -e config/.env -- npx prisma migrate dev
