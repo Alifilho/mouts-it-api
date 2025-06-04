@@ -6,6 +6,15 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { PaginationUserDto } from './dto/pagination-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
+const select = {
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  name: true,
+  email: true,
+  isActive: true,
+};
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -19,6 +28,7 @@ export class UsersService {
     const password = await bcryptjs.hash(createUserDto.password, 12);
     const user = await this.prisma.user.create({
       data: { ...createUserDto, password },
+      select,
     });
 
     this.logger.log(`User created successfully: id ${user.id}`);
@@ -26,16 +36,7 @@ export class UsersService {
   }
 
   async findMany(pagination?: PaginationUserDto) {
-    const args = {
-      select: {
-        id: true,
-        createdAt: true,
-        updatedAt: true,
-        name: true,
-        email: true,
-        isActive: true,
-      },
-    } as Prisma.UserFindManyArgs;
+    const args = { select } as Prisma.UserFindManyArgs;
 
     if (pagination) {
       const { page, take, sortBy, order, email, name, isActive } = pagination;
@@ -59,16 +60,23 @@ export class UsersService {
   }
 
   findUnique(id: number) {
-    return this.prisma.user.findUniqueOrThrow({ where: { id } });
+    return this.prisma.user.findUniqueOrThrow({ where: { id }, select });
+  }
+
+  findByEmail(email: string) {
+    return this.prisma.user.findFirstOrThrow({
+      where: { email },
+      select: { id: true, password: true },
+    });
   }
 
   update(id: number, data: UpdateUserDto) {
     this.logger.log(`Updating user id: ${id}`);
-    return this.prisma.user.update({ where: { id }, data });
+    return this.prisma.user.update({ where: { id }, data, select });
   }
 
   delete(id: number) {
     this.logger.log(`Deleting user id: ${id}`);
-    return this.prisma.user.delete({ where: { id } });
+    return this.prisma.user.delete({ where: { id }, select });
   }
 }
