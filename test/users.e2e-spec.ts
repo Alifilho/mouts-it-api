@@ -1,7 +1,8 @@
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, Logger, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { User } from 'generated/prisma';
 import { ResponseDto } from 'src/dto/response.dto';
+import { PrismaExceptionFilter } from 'src/prisma/prisma-exception.filter';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UsersModule } from 'src/users/users.module';
 import * as request from 'supertest';
@@ -14,9 +15,14 @@ describe('Users Module E2E', () => {
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [UsersModule],
+      providers: [Logger],
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
+    app.useGlobalFilters(new PrismaExceptionFilter(app.get(Logger)));
 
     prisma = await app.resolve(PrismaService);
 

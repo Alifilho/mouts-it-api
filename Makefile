@@ -13,3 +13,8 @@ migrate:
 .PHONY: dev
 dev:
 	npm run start:dev
+
+.PHONY: e2e
+e2e:
+	npx dotenv -e config/.env -- npm run test:e2e
+
