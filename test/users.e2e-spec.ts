@@ -15,7 +15,6 @@ describe('Users Module E2E', () => {
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [UsersModule],
-      providers: [Logger],
     }).compile();
 
     app = moduleFixture.createNestApplication();
