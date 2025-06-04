@@ -9,3 +9,7 @@ up:
 .PHONY: migrate
 migrate:
 	npx dotenv -e config/.env -- npx prisma migrate dev
+
+.PHONY: dev
+dev:
+	npm run start:dev
