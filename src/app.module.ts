@@ -9,6 +9,7 @@ import { PerformanceInterceptor } from './interceptors/performance.interceptor';
 import { HttpLoggerMiddleware } from './middleware/http-logger.middleware';
 import { PrismaExceptionFilter } from './prisma/prisma-exception.filter';
 import { PrismaModule } from './prisma/prisma.module';
+import { RedisModule } from './redis/redis.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -17,6 +18,7 @@ import { UsersModule } from './users/users.module';
     PrismaModule,
     UsersModule,
     AuthModule,
+    RedisModule,
   ],
   controllers: [AppController],
   providers: [

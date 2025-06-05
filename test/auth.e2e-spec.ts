@@ -38,6 +38,14 @@ class ProtectedController {
   }
 }
 
+const loggerMock = {
+  log: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+  debug: jest.fn(),
+  verbose: jest.fn(),
+};
+
 describe('Auth Module E2E', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
@@ -48,7 +56,7 @@ describe('Auth Module E2E', () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [AuthModule],
       controllers: [ProtectedController],
-      providers: [Logger],
+      providers: [{ provide: Logger, useValue: loggerMock }],
     }).compile();
 
     app = moduleFixture.createNestApplication();
@@ -95,6 +103,18 @@ describe('Auth Module E2E', () => {
       await request(app.getHttpServer())
         .post('/auth/sign-in')
         .send({ email: MOCK_EMAIL, password: 'wrong' })
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+
+    it('returns unauthorized when user is inactive', async () => {
+      await prisma.user.update({
+        where: { email: MOCK_EMAIL },
+        data: { isActive: false },
+      });
+
+      await request(app.getHttpServer())
+        .post('/auth/sign-in')
+        .send({ email: MOCK_EMAIL, password: MOCK_PASSWORD })
         .expect(HttpStatus.UNAUTHORIZED);
     });
 

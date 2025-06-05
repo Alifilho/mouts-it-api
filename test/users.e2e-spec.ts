@@ -1,9 +1,4 @@
-import {
-  HttpStatus,
-  INestApplication,
-  Logger,
-  ValidationPipe,
-} from '@nestjs/common';
+import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { User } from 'generated/prisma';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -13,6 +8,15 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { UsersModule } from 'src/users/users.module';
 import * as request from 'supertest';
 import { App } from 'supertest/types';
+import { Logger } from 'winston';
+
+const loggerMock = {
+  log: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+  debug: jest.fn(),
+  verbose: jest.fn(),
+};
 
 describe('Users Module E2E', () => {
   let app: INestApplication<App>;
@@ -21,6 +25,7 @@ describe('Users Module E2E', () => {
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [UsersModule],
+      providers: [{ provide: Logger, useValue: loggerMock }],
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })

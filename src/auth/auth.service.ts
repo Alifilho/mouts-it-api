@@ -15,13 +15,19 @@ export class AuthService {
   async signIn(data: SignInDto) {
     this.logger.log(`Sign-in attempt for user: ${data.email}`);
 
-    let user: { id: number; password: string };
+    let user: { id: number; password: string; isActive: boolean };
     try {
       user = await this.usersService.findByEmail(data.email);
+      if (!user.isActive) throw new UnauthorizedException('User is not active');
     } catch {
       this.logger.warn(
         `Failed sign-in attempt: user not found - ${data.email}`,
       );
+      throw new UnauthorizedException();
+    }
+
+    if (!user.isActive) {
+      this.logger.warn(`Failed sign-in attempt: user inactive - ${data.email}`);
       throw new UnauthorizedException();
     }
 
