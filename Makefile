@@ -10,6 +10,10 @@ up:
 migrate:
 	npx dotenv -e config/.env -- npx prisma migrate dev
 
+.PHONY: reset
+reset:
+	npx dotenv -e config/.env -- npx prisma migrate reset
+
 .PHONY: dev
 dev:
 	npm run start:dev

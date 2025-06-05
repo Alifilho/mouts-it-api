@@ -1,6 +1,12 @@
-import { INestApplication, Logger, ValidationPipe } from '@nestjs/common';
+import {
+  HttpStatus,
+  INestApplication,
+  Logger,
+  ValidationPipe,
+} from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { User } from 'generated/prisma';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { ResponseDto } from 'src/dto/response.dto';
 import { PrismaExceptionFilter } from 'src/prisma/prisma-exception.filter';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -15,7 +21,10 @@ describe('Users Module E2E', () => {
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [UsersModule],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(
@@ -50,7 +59,7 @@ describe('Users Module E2E', () => {
       const res = await request(app.getHttpServer())
         .post('/users')
         .send(payload)
-        .expect(201);
+        .expect(HttpStatus.CREATED);
 
       expect(res.body).toMatchObject({
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -71,15 +80,15 @@ describe('Users Module E2E', () => {
       await request(app.getHttpServer())
         .post('/users')
         .send(payload)
-        .expect(201);
+        .expect(HttpStatus.CREATED);
 
       const res = await request(app.getHttpServer())
         .post('/users')
         .send(payload)
-        .expect(409);
+        .expect(HttpStatus.CONFLICT);
 
       expect(res.body).toMatchObject({
-        statusCode: 409,
+        statusCode: HttpStatus.CONFLICT,
         message: 'Conflict',
         path: '/users',
         method: 'POST',
@@ -99,7 +108,9 @@ describe('Users Module E2E', () => {
       }));
       await prisma.user.createMany({ data });
 
-      const res = await request(app.getHttpServer()).get('/users').expect(200);
+      const res = await request(app.getHttpServer())
+        .get('/users')
+        .expect(HttpStatus.OK);
       const body = res.body as ResponseDto<User>;
 
       expect(body).toMatchObject({ total: 4 });
@@ -118,7 +129,7 @@ describe('Users Module E2E', () => {
       const res = await request(app.getHttpServer())
         .get('/users')
         .query({ page: 1, take: 10 })
-        .expect(200);
+        .expect(HttpStatus.OK);
 
       const body = res.body as ResponseDto<User>;
       expect(body).toMatchObject({ total: 12, page: 1, take: 10 });
@@ -138,7 +149,7 @@ describe('Users Module E2E', () => {
 
       const res = await request(app.getHttpServer())
         .get(`/users/${user.id}`)
-        .expect(200);
+        .expect(HttpStatus.OK);
 
       expect(res.body).toMatchObject({
         id: user.id,
@@ -148,8 +159,10 @@ describe('Users Module E2E', () => {
       });
     });
 
-    it('returns 404 for non-existing id', async () => {
-      await request(app.getHttpServer()).get('/users/999999').expect(404);
+    it('returns not found for non-existing id', async () => {
+      await request(app.getHttpServer())
+        .get('/users/999999')
+        .expect(HttpStatus.NOT_FOUND);
     });
   });
 
@@ -166,7 +179,7 @@ describe('Users Module E2E', () => {
       const res = await request(app.getHttpServer())
         .put(`/users/${user.id}`)
         .send({ name: 'Mouts', isActive: false })
-        .expect(200);
+        .expect(HttpStatus.OK);
 
       expect(res.body).toMatchObject({
         id: user.id,
@@ -175,8 +188,10 @@ describe('Users Module E2E', () => {
       });
     });
 
-    it('returns 404 for non-existing id', async () => {
-      await request(app.getHttpServer()).put('/users/999999').expect(404);
+    it('returns not found for non-existing id', async () => {
+      await request(app.getHttpServer())
+        .put('/users/999999')
+        .expect(HttpStatus.NOT_FOUND);
     });
   });
 
@@ -192,15 +207,19 @@ describe('Users Module E2E', () => {
 
       const res = await request(app.getHttpServer())
         .delete(`/users/${user.id}`)
-        .expect(200);
+        .expect(HttpStatus.OK);
 
       expect(res.body).toMatchObject({ id: user.id });
 
-      await request(app.getHttpServer()).get(`/users/${user.id}`).expect(404);
+      await request(app.getHttpServer())
+        .get(`/users/${user.id}`)
+        .expect(HttpStatus.NOT_FOUND);
     });
 
-    it('returns 404 when deleting non-existing user', async () => {
-      await request(app.getHttpServer()).delete('/users/999999').expect(404);
+    it('returns not found when deleting non-existing user', async () => {
+      await request(app.getHttpServer())
+        .delete('/users/999999')
+        .expect(HttpStatus.NOT_FOUND);
     });
   });
 });

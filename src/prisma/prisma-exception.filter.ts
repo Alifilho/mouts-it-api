@@ -1,4 +1,10 @@
-import { ArgumentsHost, Catch, ExceptionFilter, Logger } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { Prisma } from 'generated/prisma';
 
@@ -22,23 +28,23 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     };
 
     if (exception.code === 'P2025') {
-      return response.status(404).json({
+      return response.status(HttpStatus.NOT_FOUND).json({
         ...body,
-        statusCode: 404,
+        statusCode: HttpStatus.NOT_FOUND,
         message: 'Not Found',
       });
     }
     if (exception.code === 'P2002') {
-      return response.status(409).json({
+      return response.status(HttpStatus.CONFLICT).json({
         ...body,
-        statusCode: 409,
+        statusCode: HttpStatus.CONFLICT,
         message: 'Conflict',
       });
     }
 
-    return response.status(500).json({
+    return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       ...body,
-      statusCode: 500,
+      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       message: 'Internal Server Error',
     });
   }
