@@ -14,9 +14,19 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  
+  cache-mouts:
+    image: redis:7-alpine
+    networks:
+      - network-mouts
+    ports:
+      - "6379:6379"
+    volumes:
+      - cache-data-mouts:/data
 
 volumes:
   data-mouts:
+  cache-data-mouts:
 
 networks:
   network-mouts:

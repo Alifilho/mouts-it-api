@@ -3,13 +3,13 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
 import { AllExceptionsFilter } from './filters/all-exceptions.filter';
 import { PerformanceInterceptor } from './interceptors/performance.interceptor';
 import { HttpLoggerMiddleware } from './middleware/http-logger.middleware';
 import { PrismaExceptionFilter } from './prisma/prisma-exception.filter';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
-import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
