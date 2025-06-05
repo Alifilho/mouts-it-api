@@ -3,7 +3,10 @@
     "autoincrement",
     "datasource",
     "dotenv",
+    "healthcheck",
+    "isready",
     "mouts",
+    "postgres",
     "postgresql",
     "Resetando"
   ]

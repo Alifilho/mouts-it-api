@@ -15,6 +15,20 @@ services:
       timeout: 5s
       retries: 5
 
+  test-cache-mouts:
+    image: redis:7-alpine
+    networks:
+      - test-network-mouts
+    ports:
+      - "6379"
+    volumes:
+      - test-cache-data-mouts:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   test-api-mouts:
     build:
       context: ..
@@ -26,10 +40,13 @@ services:
     ports:
       - "3001:3001"
     depends_on:
+      test-cache-mouts:
+        condition: service_healthy
       test-database-mouts:
         condition: service_healthy
 
 volumes:
+  test-cache-data-mouts:
   test-data-mouts:
 
 networks:
