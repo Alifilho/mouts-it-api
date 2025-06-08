@@ -41,7 +41,7 @@ The application follows a modular architecture:
 
 ## Installation
 ```bash
-    git clone <repository-url> && cd <repository-directory>
+    git clone https://github.com/Alifilho/mouts-it-api && cd mouts-it-api
     npm install
 ```
 
@@ -61,11 +61,12 @@ The application follows a modular architecture:
 
 Create your `.env` files from the example:
 ```bash
+    make env
+
+    # or
     cp config/.example.env config/.env        # for production/dev  
     cp config/.example.env config/.local.env  # for local development  
     cp config/.example.env config/.e2e.env    # for isolated E2E testing  
-    # or simply  
-    make env
 ```
 
 ## Running the App
@@ -73,6 +74,7 @@ Create your `.env` files from the example:
 ### With Docker
 ```bash
     make up
+    
     # or
     docker compose -f docker/docker-compose.yml -p api-mouts up -d
 ```
