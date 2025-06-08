@@ -1,137 +1,132 @@
-Mouts Api
+# Mouts API
 
-Prerequisites
+## Table of Contents
+1. [Prerequisites](#prerequisites)
+2. [Tech Stack & Architecture](#tech-stack--architecture)
+3. [Installation](#installation)  
+4. [Environment](#environment)  
+5. [Running the App](#running-the-app)  
+6. [Testing](#testing)  
+7. [Default Credentials](#default-credentials)
+8. [Commits](#commits)
+9. [Contact/Support](#contact--support)
 
-- Docker
-- Node.js 22+
-- Make utility (optional, for convenience commands)
+## Prerequisites
+- Docker  
+- Node.js v22 or higher  
+- Make utility (optional, for convenience)
 
-Installation
+## Tech Stack & Architecture
 
-1. Clone the repository
+This API is built with:
 
-git clone <repository-url>
-cd <repository-directory>
+- NestJS (TypeScript) for the backend framework
+- Prisma ORM for database access
+- PostgreSQL as the primary datastore
+- Redis for caching
+- Docker for containerization
+- Winston for structured logging
+- Jest for testing
+- dotenv for configuration management
+- ESLint for linting
+- Make for task utility
 
-2. Create environment configuration
-- Copy the example environment file
+The application follows a modular architecture:
 
-cp config/.example.env config/.env
+- Controllers handle HTTP requests
+- Services contain business logic
+- Data-access layer uses Prisma
+- Authentication with JWT tokens
+- Cache layer via NestJS’s cache-manager and Redis
 
-- If you plan to run E2E tests on a separate environment, also create
+## Installation
+```bash
+    git clone <repository-url> && cd <repository-directory>
+    npm install
+```
 
-cp config/.example.env config/.e2e.env
+## Environment
 
-- If you plan to run and test locally, also create
+### Environment Variables
+- `POSTGRES_DB` — database name  
+- `POSTGRES_USER` — DB username  
+- `POSTGRES_PASSWORD` — DB password  
+- `DATABASE_URL` — full PostgreSQL connection string  
+- `REDIS_HOST` — Redis host  
+- `REDIS_PORT` — Redis port  
+- `REDIS_TTL` — cache TTL (seconds)  
+- `JWT_SECRET` — JWT signing secret  
+- `JWT_REFRESH_SECRET` — (for E2E only) refresh-token secret  
+- `PORT` — HTTP port (default: 3001)  
 
-cp config/.example.env config/.local.env
+Create your `.env` files from the example:
+```bash
+    cp config/.example.env config/.env        # for production/dev  
+    cp config/.example.env config/.local.env  # for local development  
+    cp config/.example.env config/.e2e.env    # for isolated E2E testing  
+    # or simply  
+    make env
+```
 
-or make env with make utility:
+## Running the App
 
-make env
+### With Docker
+```bash
+    make up
+    # or
+    docker compose -f docker/docker-compose.yml -p api-mouts up -d
+```
 
-(for testing purposes i will share this .env .e2e.env .local.env to facilitate your experience:
+### Locally (Postgres + Redis on localhost)
+```bash
+    make up-local
+    make migrate # run database migrations  
+    make seed # seed default data (creates admin user) 
+    make dev
 
-// .env
-POSTGRES_DB="mouts"
-POSTGRES_USER="mouts"
-POSTGRES_PASSWORD="06pOsopkEIehgez6th6Hh7Vx1b2FQuq0"
+    # or
+    docker compose -f docker/local.docker-compose.yml -p api-mouts up -d
+    npx dotenv -e config/.local.env -- npx prisma migrate dev
+    npx dotenv -e config/.local.env -- npx prisma db seed
+    npx dotenv -e config/.local.env -- npm run start:dev
 
-REDIS_HOST=cache-mouts
-REDIS_PORT=6379
-REDIS_TTL=60
+```
 
-DATABASE_URL="postgresql://mouts:06pOsopkEIehgez6th6Hh7Vx1b2FQuq0@database-mouts:5432/mouts?schema=public"
+Once running, access the OpenAPI (Swagger) docs at:  
+    http://localhost:3001/docs   
 
-JWT_SECRET="ldC62rkdvIuVhe8XdavszyUwKvt7T0CF"
+## Testing
 
-PORT=3001
+### E2E with Docker
+```bash
+    make e2e
 
-// .e2e.env
-POSTGRES_DB="test-mouts"
-POSTGRES_USER="test-mouts"
-POSTGRES_PASSWORD="06pOsopkEIehgez6th6Hh7Vx1b2FQuq0"
+    # or
+    docker compose -f docker/e2e.docker-compose.yml -p test-api-mouts-v2 up --build --abort-on-container-exit test-api-mouts && docker compose -f docker/e2e.docker-compose.yml -p test-api-mouts-v2 down --volumes
+```
+This brings up an isolated test environment, runs migrations and E2E tests, then tears down the containers.
 
-REDIS_HOST=test-cache-mouts
-REDIS_PORT=6379
-REDIS_TTL=60
+### E2E Locally
+```bash
+    make up-local
+    make migrate
+    make e2e-local
 
-DATABASE_URL="postgresql://test-mouts:06pOsopkEIehgez6th6Hh7Vx1b2FQuq0@test-database-mouts:5432/test-mouts?schema=public"
+    # or
+    docker compose -f docker/local.docker-compose.yml -p api-mouts up -d
+    npx dotenv -e config/.local.env -- npx prisma migrate dev
+    npx dotenv -e config/.local.env -- npm run test:e2e
+```
 
-JWT_SECRET="ldC62rkdvIuVhe8XdavszyUwKvt7T0CF"
-JWT_REFRESH_SECRET="mO7YnMcsduNy3MBBb7dPDkJvH1ad666V"
+## Default Credentials
+After seeding, the default admin user is:  
+- **Email:** admin@mouts.com  
+- **Password:** 12345
 
-PORT=3001
+## Commits
 
-// .local.env
-POSTGRES_DB="mouts"
-POSTGRES_USER="mouts"
-POSTGRES_PASSWORD="06pOsopkEIehgez6th6Hh7Vx1b2FQuq0"
+This repository follows the [Conventional Commits](https://www.conventionalcommits.org/) specification to maintain a clear, structured commit history.
 
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_TTL=60
+## Contact / Support
 
-DATABASE_URL="postgresql://mouts:06pOsopkEIehgez6th6Hh7Vx1b2FQuq0@localhost:5432/mouts?schema=public"
-
-JWT_SECRET="ldC62rkdvIuVhe8XdavszyUwKvt7T0CF"
-
-PORT=3001
-)
-
-3. Install dependencies
-
-npm install
-
-Development
-
-- I configured two ways to run the project, (it is not possible to run both forms at the same time, you must turn off the container to change the form)
-the first one being with docker (.env file must be configured):
-
-docker compose -f docker/docker-compose.yml -p api-mouts up -d
-
-or with make:
-
-make up
-
-- the second way is to run postgres and redis locally and run the api through node (.local.env must be configured):
-
-docker compose -f docker/local.docker-compose.yml -p api-mouts up -d
-npx dotenv -e config/.local.env -- npx prisma migrate dev
-npx dotenv -e config/.local.env -- npx prisma db seed
-npx dotenv -e config/.local.env -- npm run start:dev
-
-or with make:
-
-make up-local
-make migrate
-make seed
-make dev
-
-- the default admin user in seed is admin@mouts.com / 12345
-
-Testing
-
-- I also configured two ways to run the e2e tests, the first being in an isolated environment with docker:
-
-docker compose -f docker/e2e.docker-compose.yml -p test-api-mouts-v2 up --build --abort-on-container-exit test-api-mouts && docker compose -f docker/e2e.docker-compose.yml -p test-api-mouts-v2 down --volumes
-
-or with make:
-
-make e2e
-
-I also configured two ways to run the e2e tests, the first being in an isolated environment with docker:
-
-it will bring up the database, run the migrations, and the tests configured in /test
-
-- or if using local configuration:
-
-docker compose -f docker/local.docker-compose.yml -p api-mouts up -d
-npx dotenv -e config/.local.env -- npx prisma migrate dev
-npx dotenv -e config/.local.env -- npm run test:e2e
-
-or with make:
-
-make up-local
-make migrate
-make e2e-local
+For questions, bug reports, or help, please reach out to the maintainer at alissonoliveiram@gmail.com.
