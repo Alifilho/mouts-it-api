@@ -1,126 +1,137 @@
-# Mouts-IT API
+Mouts Api
 
-A Node.js + Prisma-based REST API for Mouts-IT, containerized with Docker Compose for local development and end-to-end testing.
+Prerequisites
 
-## Features
+- Docker
+- Node.js 22+
+- Make utility (optional, for convenience commands)
 
-- RESTful endpoints (see [src/routes](src/routes) for details)  
-- Database migrations & seeding with Prisma  
-- Local development in Docker containers  
-- Hot-reload development mode  
-- End-to-end tests in isolated Docker environment  
+Installation
 
-## Prerequisites
+1. Clone the repository
 
-- Docker & Docker Compose (v2+)  
-- Node.js (v16+) & npm (v8+)  
-- `make` utility  
-- [npx dotenv](https://www.npmjs.com/package/dotenv) (installed via npm)  
+git clone <repository-url>
+cd <repository-directory>
 
-## Installation
+2. Create environment configuration
+- Copy the example environment file
 
-1. Clone the repo  
-   ```bash
-   git clone https://github.com/your-org/mouts-it.git
-   cd mouts-it
-   ```
+cp config/.example.env config/.env
 
-2. Copy environment variables  
-   ```bash
-   cp config/.env.example config/.env
-   # Edit config/.env to match your local settings
-   ```
+- If you plan to run E2E tests on a separate environment, also create
 
-3. Install dependencies  
-   ```bash
-   npm install
-   ```
+cp config/.example.env config/.e2e.env
 
-## Configuration
+- If you plan to run and test locally, also create
 
-All runtime environment variables live in `config/.env`. Typical variables:
+cp config/.example.env config/.local.env
 
-```dotenv
-DATABASE_URL="postgresql://user:pass@db:5432/mouts_it?schema=public"
-PORT=3000
-JWT_SECRET=your_jwt_secret
-# ...other settings
-```
+or make env with make utility:
 
-## Development
+make env
 
-Bring up local services, database, etc.:
+(for testing purposes i will share this .env .e2e.env .local.env to facilitate your experience:
 
-```bash
+// .env
+POSTGRES_DB="mouts"
+POSTGRES_USER="mouts"
+POSTGRES_PASSWORD="06pOsopkEIehgez6th6Hh7Vx1b2FQuq0"
+
+REDIS_HOST=cache-mouts
+REDIS_PORT=6379
+REDIS_TTL=60
+
+DATABASE_URL="postgresql://mouts:06pOsopkEIehgez6th6Hh7Vx1b2FQuq0@database-mouts:5432/mouts?schema=public"
+
+JWT_SECRET="ldC62rkdvIuVhe8XdavszyUwKvt7T0CF"
+
+PORT=3001
+
+// .e2e.env
+POSTGRES_DB="test-mouts"
+POSTGRES_USER="test-mouts"
+POSTGRES_PASSWORD="06pOsopkEIehgez6th6Hh7Vx1b2FQuq0"
+
+REDIS_HOST=test-cache-mouts
+REDIS_PORT=6379
+REDIS_TTL=60
+
+DATABASE_URL="postgresql://test-mouts:06pOsopkEIehgez6th6Hh7Vx1b2FQuq0@test-database-mouts:5432/test-mouts?schema=public"
+
+JWT_SECRET="ldC62rkdvIuVhe8XdavszyUwKvt7T0CF"
+JWT_REFRESH_SECRET="mO7YnMcsduNy3MBBb7dPDkJvH1ad666V"
+
+PORT=3001
+
+// .local.env
+POSTGRES_DB="mouts"
+POSTGRES_USER="mouts"
+POSTGRES_PASSWORD="06pOsopkEIehgez6th6Hh7Vx1b2FQuq0"
+
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_TTL=60
+
+DATABASE_URL="postgresql://mouts:06pOsopkEIehgez6th6Hh7Vx1b2FQuq0@localhost:5432/mouts?schema=public"
+
+JWT_SECRET="ldC62rkdvIuVhe8XdavszyUwKvt7T0CF"
+
+PORT=3001
+)
+
+3. Install dependencies
+
+npm install
+
+Development
+
+- I configured two ways to run the project, (it is not possible to run both forms at the same time, you must turn off the container to change the form)
+the first one being with docker (.env file must be configured):
+
+docker compose -f docker/docker-compose.yml -p api-mouts up -d
+
+or with make:
+
 make up
-```
 
-Run database migrations:
+- the second way is to run postgres and redis locally and run the api through node (.local.env must be configured):
 
-```bash
+docker compose -f docker/local.docker-compose.yml -p api-mouts up -d
+npx dotenv -e config/.local.env -- npx prisma migrate dev
+npx dotenv -e config/.local.env -- npx prisma db seed
+npx dotenv -e config/.local.env -- npm run start:dev
+
+or with make:
+
+make up-local
 make migrate
-```
-
-Start the app in hot-reload mode:
-
-```bash
+make seed
 make dev
-```
 
-Browse to http://localhost:3000 (or the port you configured).
+- the default admin user in seed is admin@mouts.com / 12345
 
-### Resetting the Database
+Testing
 
-To drop all data and re-apply migrations:
+- I also configured two ways to run the e2e tests, the first being in an isolated environment with docker:
 
-```bash
-make reset
-```
+docker compose -f docker/e2e.docker-compose.yml -p test-api-mouts-v2 up --build --abort-on-container-exit test-api-mouts && docker compose -f docker/e2e.docker-compose.yml -p test-api-mouts-v2 down --volumes
 
-### Stopping & Cleaning Up
+or with make:
 
-```bash
-make down
-```
-
-## End-to-End Testing
-
-Spins up a fresh environment, runs the `test-api-mouts` container suite, then tears it down:
-
-```bash
 make e2e
-```
 
-Test reports and logs will be output in your terminal.
+I also configured two ways to run the e2e tests, the first being in an isolated environment with docker:
 
-## Scripts Reference
+it will bring up the database, run the migrations, and the tests configured in /test
 
-- `npm run start:dev` – start in development mode (hot-reload)  
-- `npx dotenv -e config/.env -- npx prisma migrate dev` – apply new migrations  
-- `npx dotenv -e config/.env -- npx prisma migrate reset` – reset database  
+- or if using local configuration:
 
-All the above are wrapped in Makefile targets (`up`, `down`, `migrate`, `reset`, `dev`, `e2e`).
+docker compose -f docker/local.docker-compose.yml -p api-mouts up -d
+npx dotenv -e config/.local.env -- npx prisma migrate dev
+npx dotenv -e config/.local.env -- npm run test:e2e
 
-## Project Structure
+or with make:
 
-```
-mouts-it/
-├── config/                # Environment config
-│   └── .env.example
-├── docker/                # Docker Compose files
-│   ├── local.docker-compose.yml
-│   └── e2e.docker-compose.yml
-├── prisma/                # Prisma schema & migrations
-├── src/                   # Application source code
-│   ├── controllers/
-│   ├── services/
-│   └── routes/
-├── tests/                 # (Optional) unit & integration tests
-├── Makefile               # Development & test automation
-├── package.json
-└── tsconfig.json
-```
-
-## License
-
-MIT © Your Company Name
+make up-local
+make migrate
+make e2e-local
