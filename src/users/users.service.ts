@@ -99,6 +99,11 @@ export class UsersService {
 
     await this.redis.del(`users:id:${id}`);
     await this.redis.delByPrefix('users:all');
+
+    if (data.password) {
+      data.password = await bcryptjs.hash(data.password, 12);
+    }
+
     return this.prisma.user.update({ where: { id }, data, select });
   }
 
