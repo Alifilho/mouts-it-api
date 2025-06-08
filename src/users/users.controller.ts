@@ -31,6 +31,8 @@ export class UsersController {
 
   @Get()
   async findMany(@Query() pagination?: PaginationUserDto) {
+    console.log(pagination);
+
     const { items, total } = await this.usersService.findMany(pagination);
 
     return {

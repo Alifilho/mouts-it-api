@@ -14,6 +14,10 @@ migrate:
 reset:
 	npx dotenv -e config/.env -- npx prisma migrate reset
 
+.PHONY: seed
+seed:
+	npx dotenv -e config/.env -- npx prisma db seed
+
 .PHONY: dev
 dev:
 	npm run start:dev
