@@ -13,7 +13,7 @@ import { tap } from 'rxjs/operators';
 export class PerformanceInterceptor implements NestInterceptor {
   private readonly logger = new Logger('Performance');
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const req: Request = context.switchToHttp().getRequest();
     const { method, url } = req;
     const now = Date.now();

@@ -18,5 +18,6 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "allowJs": true
-  }
+  },
+  "exclude": ["generated","**/*.mjs", "dist"]
 }
